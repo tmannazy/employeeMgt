@@ -7,6 +7,7 @@ import africa.tmannazy.employeemgt.exceptions.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatchException;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public interface EmployeeService {
 
     EmployeeResponse getEmployeeById(Long id) throws ResourceNotFoundException;
 
-    EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ResourceNotFoundException, JsonPatchException, JsonProcessingException;
+    EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ResourceNotFoundException, JsonPatchException, IOException;
 
     Map<String, Boolean> deleteEmployee(Long id) throws ResourceNotFoundException;
 

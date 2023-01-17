@@ -9,12 +9,13 @@ import africa.tmannazy.employeemgt.services.interfaces.EmployeeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.github.fge.jsonpatch.mergepatch.JsonMergePatch;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Collection<Employee> getAllEmployees() {
@@ -39,7 +41,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 //                .firstName(employeeRequest.getFirstName())
 //                .lastName(employeeRequest.getLastName())
 //                .build();
-        Employee
+        Employee request = mapper.map(employeeRequest, Employee.class);
         employeeRepository.save(request);
         return EmployeeResponse.builder().message("Employee " + request.getFirstName() + " created").build();
     }
@@ -53,22 +55,21 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ResourceNotFoundException, JsonPatchException, JsonProcessingException {
-
+    public EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ResourceNotFoundException, JsonPatchException, IOException {
         Employee found = searchEmployee(id);
+        String json = objectMapper.writeValueAsString(employeeRequest);
+        JsonNode jsonNode = objectMapper.readTree(json);
+        JsonMergePatch patch = JsonMergePatch.fromJson(jsonNode);
         Employee foundPatched = applyToEmployee(patch, found);
-//        found.setLastName(employeeRequest.getLastName());
-//        found.setFirstName(employeeRequest.getFirstName());
-//        found.setEmailId(employeeRequest.getEmailId());
 
         var updateFoundEmployee = employeeRepository.save(foundPatched);
         return EmployeeResponse.builder()
-                .message("Employee " + updateFoundEmployee.getFirstName() + " data updated")
+                .message("Employee " + found.getFirstName() + " details updated")
                 .employee(updateFoundEmployee)
                 .build();
     }
 
-    private Employee applyToEmployee(JsonPatch patch, Employee targetEmployee) throws JsonPatchException, JsonProcessingException {
+    private Employee applyToEmployee(JsonMergePatch patch, Employee targetEmployee) throws JsonPatchException, JsonProcessingException {
         JsonNode patched = patch.apply(objectMapper.convertValue(targetEmployee, JsonNode.class));
         return objectMapper.treeToValue(patched, Employee.class);
     }

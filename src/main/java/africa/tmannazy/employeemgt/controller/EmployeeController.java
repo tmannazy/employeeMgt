@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/v1/")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -35,8 +37,8 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.getEmployeeById(id));
     }
 
-    @PatchMapping(value = "/employees/{id}", consumes = "application/json-patch+json")
-    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody EmployeeRequest request) throws ResourceNotFoundException, JsonPatchException, JsonProcessingException {
+    @PatchMapping(value = "/employees/{id}")
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody EmployeeRequest request) throws ResourceNotFoundException, JsonPatchException, IOException {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(id, request));
     }
 
