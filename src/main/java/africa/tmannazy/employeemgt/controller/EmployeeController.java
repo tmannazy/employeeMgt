@@ -4,6 +4,7 @@ import africa.tmannazy.employeemgt.data.dtos.request.EmployeeRequest;
 import africa.tmannazy.employeemgt.exceptions.ResourceNotFoundException;
 import africa.tmannazy.employeemgt.services.interfaces.EmployeeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.fge.jackson.jsonpointer.JsonPointerException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,7 @@ public class EmployeeController {
     }
 
     @PatchMapping(value = "/employees/{id}")
-    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody EmployeeRequest request) throws ResourceNotFoundException, JsonPatchException, IOException {
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody EmployeeRequest request) throws ResourceNotFoundException, JsonPatchException, IOException, JsonPointerException {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(id, request));
     }
 
