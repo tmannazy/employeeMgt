@@ -9,11 +9,9 @@ import africa.tmannazy.employeemgt.services.interfaces.EmployeeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jackson.jsonpointer.JsonPointerException;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.ReplaceOperation;
+import com.github.fge.jsonpatch.mergepatch.JsonMergePatch;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -63,53 +60,26 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ResourceNotFoundException, JsonPatchException, IOException, JsonPointerException {
         Employee found = searchEmployee(id);
-        log.info("{}, {}, {}", employeeRequest.getEmailId(), employeeRequest.getLastName(), employeeRequest.getFirstName());
-
-//        JsonNode firstName = objectMapper.readTree(employeeRequest.getFirstName());
-        JsonNode firstName = objectMapper.readTree(employeeRequest.getFirstName());
-        JsonNode lastName = objectMapper.readTree(employeeRequest.getLastName());
-        JsonNode emailId = objectMapper.readTree(employeeRequest.getEmailId());
-        JsonPatch patch = new JsonPatch(List.of(new ReplaceOperation(new JsonPointer("/firstName"), firstName),
-                new ReplaceOperation(new JsonPointer("/lastName"), lastName),
-                new ReplaceOperation(new JsonPointer("/emailId"), emailId)));
-
-        log.info("patch:::::::: {}", patch);
-//        JsonNode in = objectMapper.readTree(json);
-//        JsonPatch patch = objectMapper.readValue(json, JsonPatch.class);
-        Employee employee = applyToEmployee(patch, found);
-//        Employee mapEmployee = objectMapper.readValue(json, Employee.class);
-//        Employee request =  Employee.builder()
-//                .firstName(mapEmployee.getFirstName())
-//                .lastName(mapEmployee.getLastName())
-//                .emailId(mapEmployee.getEmailId())
-//                .build();
-//        Employee employee = mapper.map(request, Employee.class);
-
-        var savedEmployee = employeeRepository.save(employee);
-
-//        System.out.println(json);
-        log.info("found employee -> {}", found);
-        log.info("employee:: {}",employee);
-        log.info("request:: {}", savedEmployee);
-//        Employee foundPatched = applyToEmployee(patch, found);
-
-
-//        var updateFoundEmployee = employeeRepository.save(foundPatched);
+        String json = objectMapper.writeValueAsString(employeeRequest);
+        Employee patched = updateEmployee(found, json);
+        var savedEmployee = employeeRepository.save(patched);
         return EmployeeResponse.builder()
                 .message("Employee " + found.getFirstName() + " details updated")
                 .employee(savedEmployee)
                 .build();
-
     }
 
-    private Employee applyToEmployee(JsonPatch patch, Employee targetEmployee) throws JsonPatchException, JsonProcessingException {
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetEmployee, JsonNode.class));
+    private Employee updateEmployee(Employee found, String json) throws JsonProcessingException, JsonPatchException {
+        JsonNode jsonNode = objectMapper.readTree(json);
+        JsonMergePatch patch = JsonMergePatch.fromJson(jsonNode);
+        JsonNode patched = patch.apply(objectMapper.convertValue(found, JsonNode.class));
         return objectMapper.treeToValue(patched, Employee.class);
     }
 
     @Override
     public Map<String, Boolean> deleteEmployee(Long id) throws ResourceNotFoundException {
-        searchEmployee(id);
+        Employee employee = searchEmployee(id);
+        employeeRepository.delete(employee);
         Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", Boolean.TRUE);
         return response;
