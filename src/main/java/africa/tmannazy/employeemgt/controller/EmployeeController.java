@@ -3,9 +3,7 @@ package africa.tmannazy.employeemgt.controller;
 import africa.tmannazy.employeemgt.data.dtos.request.EmployeeRequest;
 import africa.tmannazy.employeemgt.exceptions.ResourceNotFoundException;
 import africa.tmannazy.employeemgt.services.interfaces.EmployeeService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jackson.jsonpointer.JsonPointerException;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/v1")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -43,7 +41,7 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(id, request));
     }
 
-    @DeleteMapping("/employee/{id}")
+    @DeleteMapping("/employees/{id}")
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) throws ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.deleteEmployee(id));
     }
