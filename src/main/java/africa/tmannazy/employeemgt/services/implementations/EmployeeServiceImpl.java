@@ -53,7 +53,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeResponse getEmployeeById(Long id) throws ResourceNotFoundException {
         Employee found = searchEmployee(id);
         return EmployeeResponse.builder()
-                .message(String.format("Employee with id " + id + "found"))
+                .message(String.format("Employee with id " + id + " found"))
                 .employee(found).build();
     }
 
